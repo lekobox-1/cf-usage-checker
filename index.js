@@ -26,23 +26,21 @@ export default {
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     :root {
-      --bg-light: linear-gradient(135deg, #f0f4ff, #e3f6f5);
-      --bg-dark: linear-gradient(135deg, #1f2937, #111827);
+      --bg-light: linear-gradient(135deg, #eef2ff, #e0f2fe);
+      --bg-dark: linear-gradient(135deg, #1e293b, #0f172a);
       --card-light: white;
       --card-dark: #1f2937;
-      --text-light: #1f2937;
-      --text-dark: #f9fafb;
     }
 
     body {
       background: var(--bg-light);
-      transition: background 0.4s ease, color 0.4s ease;
       font-family: 'Inter', sans-serif;
+      transition: all 0.4s ease;
     }
 
     html.dark body {
       background: var(--bg-dark);
-      color: var(--text-dark);
+      color: #f9fafb;
     }
 
     .card {
@@ -75,40 +73,75 @@ export default {
       transition: all 0.4s ease-out;
     }
 
-    /* 主题切换按钮样式 */
-    #theme-toggle {
-      position: absolute;
-      top: 1.25rem;
-      right: 1.5rem;
-      background: rgba(255,255,255,0.6);
-      border: none;
-      backdrop-filter: blur(10px);
-      padding: 0.5rem 0.9rem;
+    /* 顶部导航栏 */
+    .navbar {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: linear-gradient(90deg, #6366f1, #3b82f6, #06b6d4);
+      padding: 0.9rem 2rem;
+      border-radius: 1rem;
+      color: white;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+
+    .navbar h1 {
+      font-weight: 700;
+      font-size: 1.5rem;
+      letter-spacing: 0.5px;
+    }
+
+    .nav-btn {
+      display: flex;
+      gap: 0.75rem;
+    }
+
+    .nav-btn button {
+      background: rgba(255,255,255,0.2);
+      padding: 0.5rem 1rem;
       border-radius: 9999px;
+      backdrop-filter: blur(6px);
+      transition: all 0.3s ease;
+      border: none;
+      color: white;
+      font-weight: 500;
       cursor: pointer;
-      font-size: 1.1rem;
+    }
+
+    .nav-btn button:hover {
+      background: rgba(255,255,255,0.35);
+      transform: scale(1.05);
+    }
+
+    /* 页脚链接样式 */
+    footer a {
+      background: linear-gradient(90deg, #6366f1, #10b981);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-decoration: none;
+      font-weight: 600;
       transition: all 0.3s ease;
     }
-
-    html.dark #theme-toggle {
-      background: rgba(255,255,255,0.1);
-      color: white;
-    }
-
-    #theme-toggle:hover {
-      transform: scale(1.1);
+    footer a:hover {
+      filter: brightness(1.3);
+      text-shadow: 0 0 6px rgba(99,102,241,0.3);
     }
   </style>
 </head>
-<body class="flex flex-col items-center p-8 relative">
-  <button id="theme-toggle" title="切换主题">🌗</button>
 
-  <header class="mb-10 text-center">
-    <h1 class="text-4xl font-extrabold text-indigo-600 dark:text-indigo-400 drop-shadow-sm">🌤️ Cloudflare 数据仪表盘</h1>
-    <p class="text-gray-600 dark:text-gray-300 mt-2">Workers&Pages账户使用情况可视化展示</p>
-  </header>
+<body class="flex flex-col items-center p-6 relative">
 
-  <main class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 w-full max-w-6xl">
+  <!-- 顶部导航栏 -->
+  <nav class="navbar mb-8">
+    <h1>🌤️ Cloudflare 仪表盘</h1>
+    <div class="nav-btn">
+      <button id="refresh-btn">🔄 刷新数据</button>
+      <button id="theme-toggle">🌗 主题</button>
+    </div>
+  </nav>
+
+  <main id="data-section" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 w-full max-w-6xl">
     ${data.accounts.map(acc => {
       const usedPercent = (acc.total / (acc.total + acc.free_quota_remaining) * 100).toFixed(1);
       return `
@@ -131,31 +164,41 @@ export default {
     }).join('')}
   </main>
 
-  <footer class="mt-12 text-gray-500 text-sm">
-    © ${new Date().getFullYear()} Cloudflare Worker Dashboard • Designed with 💜 by Arlettebrook
+  <footer class="mt-12 text-gray-500 text-sm text-center">
+    © 2025 Cloudflare Worker Dashboard • Designed with 💜 by 
+    <a href="https://arlettebrook.example.com" target="_blank">Arlettebrook</a>
   </footer>
 
   <script>
-    // 数字滚动动画
-    document.querySelectorAll('.num').forEach(el => {
-      const target = +el.getAttribute('data-value');
-      let count = 0;
-      const step = target / 50;
-      const timer = setInterval(() => {
-        count += step;
-        if (count >= target) {
-          count = target;
-          clearInterval(timer);
-        }
-        el.textContent = Math.floor(count).toLocaleString();
-      }, 20);
+    function animateNumbers() {
+      document.querySelectorAll('.num').forEach(el => {
+        const target = +el.getAttribute('data-value');
+        let count = 0;
+        const step = target / 50;
+        const timer = setInterval(() => {
+          count += step;
+          if (count >= target) {
+            count = target;
+            clearInterval(timer);
+          }
+          el.textContent = Math.floor(count).toLocaleString();
+        }, 20);
+      });
+    }
+
+    animateNumbers();
+
+    // 刷新按钮（模拟刷新动画）
+    document.getElementById('refresh-btn').addEventListener('click', () => {
+      document.body.style.opacity = '0.6';
+      setTimeout(() => {
+        location.reload();
+      }, 300);
     });
 
     // 主题切换逻辑
     const root = document.documentElement;
     const toggle = document.getElementById('theme-toggle');
-
-    // 根据系统偏好或本地设置初始化
     if (localStorage.getItem('theme') === 'dark' ||
         (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
       root.classList.add('dark');
