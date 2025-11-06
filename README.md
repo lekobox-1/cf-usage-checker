@@ -80,10 +80,11 @@
 Settings → Variables → Environment Variables
 添加以下环境变量：
 
-变量名	示例值	说明
-
-`MULTI_CF_API_TOKENS` = token1,token2,token3	多个 Cloudflare API Token，用英文逗号分隔
-`PASSWORD`	= Admin 用于访问保护的密码
+变量名	示例值	说明：
+```shell
+MULTI_CF_API_TOKENS = token1,token2,token3...
+# 多个 Cloudflare API Token，用英文逗号分隔
+PASSWORD	= Admin # 用于访问保护的密码```
 
 
 
