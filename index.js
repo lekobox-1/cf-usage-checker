@@ -1,50 +1,36 @@
 export default {
   async fetch(request, env, ctx) {
-    const Email = env.CF_EMAIL;           // 可选：旧式认证邮箱
-    const GlobalAPIKey = env.CF_API_KEY;  // 可选：旧式全局 API Key
-    const APIToken = env.CF_API_TOKEN;    // 推荐：API Token
-    const AccountID = env.CF_ACCOUNT_ID;  // 可选：账户 ID
-
-    const result = await getCloudflareUsage(Email, GlobalAPIKey, AccountID, APIToken);
+    const result = await getCloudflareUsage(env.CF_API_TOKEN);
     return new Response(JSON.stringify(result, null, 2), {
       headers: { "Content-Type": "application/json; charset=utf-8" }
     });
   }
 };
 
-async function getCloudflareUsage(Email, GlobalAPIKey, AccountID, APIToken) {
+async function getCloudflareUsage(APIToken) {
   const API = "https://api.cloudflare.com/client/v4";
+  const cfg = {
+    "Content-Type": "application/json",
+    "Authorization": `Bearer ${APIToken}`
+  };
   const sum = (a) => a?.reduce((t, i) => t + (i?.sum?.requests || 0), 0) || 0;
-  const cfg = { "Content-Type": "application/json" };
 
   try {
-    // ---- 1️⃣ 检查参数 ----
-    if (!AccountID && (!Email || !GlobalAPIKey))
-      throw new Error("请提供 AccountID 或 Email+GlobalAPIKey");
+    // 1️⃣ 获取账户 ID
+    const accRes = await fetch(`${API}/accounts`, { headers: cfg });
+    if (!accRes.ok) throw new Error(`账户获取失败: ${accRes.status}`);
+    const accData = await accRes.json();
+    if (!accData?.result?.length) throw new Error("未找到账户");
+    const AccountID = accData.result[0].id;
 
-    // ---- 2️⃣ 自动获取 Account ID ----
-    if (!AccountID) {
-      const r = await fetch(`${API}/accounts`, {
-        method: "GET",
-        headers: { ...cfg, "X-AUTH-EMAIL": Email, "X-AUTH-KEY": GlobalAPIKey }
-      });
-      if (!r.ok) throw new Error(`账户获取失败: ${r.status}`);
-      const d = await r.json();
-      if (!d?.result?.length) throw new Error("未找到账户");
-      AccountID = d.result[0].id;
-    }
-
-    // ---- 3️⃣ 准备时间过滤条件 ----
+    // 2️⃣ 时间范围（当天 UTC 0点 ~ 当前时间）
     const now = new Date();
     now.setUTCHours(0, 0, 0, 0);
-    const hdr = APIToken
-      ? { ...cfg, Authorization: `Bearer ${APIToken}` }
-      : { ...cfg, "X-AUTH-EMAIL": Email, "X-AUTH-KEY": GlobalAPIKey };
 
-    // ---- 4️⃣ 发起 GraphQL 查询 ----
+    // 3️⃣ 发起 GraphQL 查询
     const res = await fetch(`${API}/graphql`, {
       method: "POST",
-      headers: hdr,
+      headers: cfg,
       body: JSON.stringify({
         query: `query getBillingMetrics($AccountID: String!, $filter: AccountWorkersInvocationsAdaptiveFilter_InputObject) {
           viewer {
@@ -68,7 +54,7 @@ async function getCloudflareUsage(Email, GlobalAPIKey, AccountID, APIToken) {
     const result = await res.json();
     if (result.errors?.length) throw new Error(result.errors[0].message);
 
-    // ---- 5️⃣ 汇总统计 ----
+    // 4️⃣ 汇总结果
     const acc = result?.data?.viewer?.accounts?.[0];
     if (!acc) throw new Error("未找到账户数据");
 
