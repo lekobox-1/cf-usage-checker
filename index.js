@@ -28,27 +28,28 @@ export default {
   <style>
     :root {
       /* ===== 亮色主题 ===== */
-      --bg-light: linear-gradient(135deg, #f8fafc, #eef2ff, #f0f9ff);
-      --card-light: rgba(255, 255, 255, 0.95);
+      --bg-light: linear-gradient(135deg, #f9fafb, #eff6ff, #ecfdf5);
+      --card-light: rgba(255, 255, 255, 0.8);
       --text-light: #1e293b;
+      --accent-light: #2563eb;
       --border-light: rgba(0, 0, 0, 0.08);
+      --progress-light: linear-gradient(90deg, #10b981, #3b82f6, #8b5cf6);
 
       /* ===== 暗色主题 ===== */
-      --bg-dark: radial-gradient(circle at top left, #1e293b, #0f172a);
-      --card-dark: rgba(31, 41, 55, 0.75);
-      --text-dark: #e2e8f0;
+      --bg-dark: radial-gradient(circle at top left, #0f172a, #1e293b, #111827);
+      --card-dark: rgba(30, 41, 59, 0.8);
+      --text-dark: #f1f5f9;
+      --accent-dark: #60a5fa;
       --border-dark: rgba(255, 255, 255, 0.08);
+      --progress-dark: linear-gradient(90deg, #38bdf8, #818cf8, #c084fc);
 
-      /* ===== 通用 ===== */
-      --accent: #6366f1;
-      --progress-light: linear-gradient(90deg, #10b981, #3b82f6, #8b5cf6);
-      --progress-dark: linear-gradient(90deg, #22d3ee, #6366f1);
+      --radius: 1.25rem;
     }
 
     body {
       background: var(--bg-light);
       color: var(--text-light);
-      font-family: 'Inter', sans-serif;
+      font-family: 'Inter', 'Segoe UI', sans-serif;
       transition: all 0.4s ease-in-out;
       min-height: 100vh;
       background-attachment: fixed;
@@ -59,35 +60,39 @@ export default {
       color: var(--text-dark);
     }
 
-    /* ===== 顶部导航栏 ===== */
+    /* ===== 导航栏 ===== */
     .navbar {
       width: 100%;
       display: flex;
+      flex-wrap: wrap;
       justify-content: space-between;
       align-items: center;
-      flex-wrap: wrap;
       background: linear-gradient(90deg, #6366f1, #3b82f6, #06b6d4);
-      padding: 1rem 2rem;
-      border-radius: 1.25rem;
+      padding: 1rem 1.5rem;
+      border-radius: var(--radius);
       color: white;
-      box-shadow: 0 6px 30px rgba(99,102,241,0.25);
-      backdrop-filter: blur(12px);
+      box-shadow: 0 10px 30px rgba(99,102,241,0.25);
+      backdrop-filter: blur(16px);
       margin-bottom: 2rem;
-      gap: 1rem;
+      position: sticky;
+      top: 1rem;
+      z-index: 50;
     }
 
     .navbar h1 {
       font-weight: 700;
-      font-size: clamp(1.25rem, 4vw, 1.8rem);
+      font-size: clamp(1.2rem, 4vw, 1.75rem);
       text-align: center;
       text-shadow: 0 2px 10px rgba(255,255,255,0.35);
       flex: 1 1 100%;
+      margin-bottom: 0.75rem;
     }
 
     @media (min-width: 640px) {
       .navbar h1 {
+        flex: 0 1 auto;
+        margin-bottom: 0;
         text-align: left;
-        flex: 1 1 auto;
       }
     }
 
@@ -99,11 +104,12 @@ export default {
 
     .nav-btn button {
       background: rgba(255,255,255,0.25);
-      padding: 0.55rem 1.1rem;
+      padding: 0.6rem 1.2rem;
       border-radius: 9999px;
       border: none;
       color: white;
       font-weight: 500;
+      letter-spacing: 0.3px;
       cursor: pointer;
       backdrop-filter: blur(6px);
       transition: all 0.3s ease;
@@ -112,19 +118,21 @@ export default {
     .nav-btn button:hover {
       background: rgba(255,255,255,0.4);
       transform: translateY(-2px);
-      box-shadow: 0 4px 10px rgba(255,255,255,0.3);
+      box-shadow: 0 4px 10px rgba(255,255,255,0.25);
     }
 
     /* ===== 卡片样式 ===== */
     .card {
       background: var(--card-light);
-      border-radius: 1.25rem;
-      padding: 1.8rem;
+      border-radius: var(--radius);
+      padding: 1.75rem;
       box-shadow: 0 8px 24px rgba(0,0,0,0.08);
       border: 1px solid var(--border-light);
       transition: all 0.4s ease;
       backdrop-filter: blur(10px);
       text-align: left;
+      position: relative;
+      overflow: hidden;
     }
 
     html.dark .card {
@@ -134,44 +142,75 @@ export default {
     }
 
     .card:hover {
-      transform: translateY(-6px) scale(1.02);
-      box-shadow: 0 18px 45px rgba(99,102,241,0.25);
+      transform: translateY(-5px) scale(1.02);
+      box-shadow: 0 20px 40px rgba(99,102,241,0.25);
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      top: -40%;
+      left: -40%;
+      width: 180%;
+      height: 180%;
+      background: radial-gradient(circle at top left, rgba(99,102,241,0.15), transparent 70%);
+      transform: rotate(25deg);
+      z-index: 0;
     }
 
     .card h2 {
       font-size: 1.35rem;
       font-weight: 700;
-      color: var(--accent);
       margin-bottom: 1rem;
-      text-shadow: 0 1px 5px rgba(99,102,241,0.15);
+      color: var(--accent-light);
+      position: relative;
+      z-index: 1;
+    }
+
+    html.dark .card h2 {
+      color: var(--accent-dark);
+    }
+
+    .card .content {
+      position: relative;
+      z-index: 1;
+      font-size: 1rem;
+      line-height: 1.7;
+      color: inherit;
     }
 
     .card p {
-      text-align: left;
-      font-size: 1rem;
-      line-height: 1.6;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 0.25rem 0;
+    }
+
+    .card strong {
+      font-weight: 600;
+      opacity: 0.9;
     }
 
     .num {
       font-weight: 700;
       font-size: 1.05rem;
       text-shadow: 0 1px 4px rgba(0,0,0,0.08);
-      display: inline-block;
-      min-width: 3em;
-      text-align: right;
+      color: inherit;
     }
 
     /* ===== 进度条 ===== */
-    .progress-container {
-      margin-top: 1rem;
-    }
-
     .progress-bar {
       width: 100%;
       height: 0.75rem;
       background-color: rgba(0,0,0,0.1);
       border-radius: 9999px;
       overflow: hidden;
+      margin-top: 0.8rem;
+      position: relative;
+    }
+
+    html.dark .progress-bar {
+      background-color: rgba(255,255,255,0.1);
     }
 
     .progress {
@@ -179,17 +218,26 @@ export default {
       background: var(--progress-light);
       border-radius: 9999px;
       transition: width 1s ease-in-out;
+      box-shadow: 0 0 10px rgba(59,130,246,0.4);
     }
 
     html.dark .progress {
       background: var(--progress-dark);
+      box-shadow: 0 0 10px rgba(129,140,248,0.3);
+    }
+
+    .progress-text {
+      font-size: 0.85rem;
+      margin-top: 0.4rem;
+      text-align: right;
+      opacity: 0.75;
     }
 
     /* ===== 页脚 ===== */
     footer {
       margin-top: 3rem;
       text-align: center;
-      opacity: 0.8;
+      opacity: 0.85;
       font-size: 0.9rem;
     }
 
@@ -207,18 +255,18 @@ export default {
       text-shadow: 0 0 8px rgba(99,102,241,0.4);
     }
 
-    /* ===== 动态背景 ===== */
+    /* ===== 动态光影背景 ===== */
     .animated-bg {
       position: absolute;
       inset: 0;
       z-index: -1;
-      background: radial-gradient(circle at top left, #a5b4fc22, transparent 40%),
-                  radial-gradient(circle at bottom right, #67e8f922, transparent 40%);
-      animation: floatBg 10s ease-in-out infinite alternate;
+      background: radial-gradient(circle at 20% 30%, #a5b4fc22, transparent 40%),
+                  radial-gradient(circle at 80% 70%, #67e8f922, transparent 40%);
+      animation: floatBg 12s ease-in-out infinite alternate;
     }
 
     @keyframes floatBg {
-      from { transform: translateY(0); }
+      from { transform: translateY(0px); }
       to { transform: translateY(-20px); }
     }
   </style>
@@ -236,25 +284,23 @@ export default {
     </div>
   </nav>
 
-  <!-- 主内容区域（保留原渲染方式） -->
+  <!-- 主内容区域：保持原有渲染方式 -->
   <main id="data-section" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 w-full max-w-6xl">
     ${data.accounts.map(acc => {
       const usedPercent = (acc.total / (acc.total + acc.free_quota_remaining) * 100).toFixed(1);
       return `
       <div class="card">
         <h2>${acc.account_name}</h2>
-        <div class="text-gray-700 dark:text-gray-200 space-y-1">
+        <div class="content text-gray-700 dark:text-gray-200">
           <p><strong>📄 Pages：</strong><span class="num" data-value="${acc.pages}">0</span></p>
           <p><strong>⚙️ Workers：</strong><span class="num" data-value="${acc.workers}">0</span></p>
           <p><strong>📦 总计：</strong><span class="num" data-value="${acc.total}">0</span></p>
           <p><strong>🎁 免费额度剩余：</strong><span class="num" data-value="${acc.free_quota_remaining}">0</span></p>
         </div>
-        <div class="progress-container">
-          <div class="progress-bar">
-            <div class="progress" style="width: ${usedPercent}%"></div>
-          </div>
-          <p class="text-sm mt-2 text-right opacity-80">${usedPercent}% 已使用</p>
+        <div class="progress-bar">
+          <div class="progress" style="width: ${usedPercent}%"></div>
         </div>
+        <p class="progress-text">${usedPercent}% 已使用</p>
       </div>`;
     }).join('')}
   </main>
@@ -265,6 +311,7 @@ export default {
   </footer>
 
   <script>
+    // 动态数字动画
     function animateNumbers() {
       document.querySelectorAll('.num').forEach(el => {
         const target = +el.getAttribute('data-value');
@@ -282,11 +329,13 @@ export default {
     }
     animateNumbers();
 
+    // 刷新按钮
     document.getElementById('refresh-btn').addEventListener('click', () => {
       document.body.style.opacity = '0.6';
       setTimeout(() => location.reload(), 300);
     });
 
+    // 主题切换
     const root = document.documentElement;
     const toggle = document.getElementById('theme-toggle');
     if (localStorage.getItem('theme') === 'dark' ||
