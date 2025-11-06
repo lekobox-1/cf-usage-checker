@@ -27,12 +27,10 @@ export default {
 
   <style>
     :root {
-      --bg-light: linear-gradient(135deg, #f0f4ff, #e0f2fe, #faf5ff);
+      --bg-light: linear-gradient(135deg, #f8fafc, #e0f2fe, #fdf2f8);
       --bg-dark: linear-gradient(135deg, #0f172a, #1e293b);
-      --card-light: rgba(255, 255, 255, 0.85);
+      --card-light: rgba(255, 255, 255, 0.9);
       --card-dark: rgba(31, 41, 55, 0.8);
-      --text-light: #1e293b;
-      --text-dark: #f3f4f6;
     }
 
     body {
@@ -41,59 +39,50 @@ export default {
       transition: all 0.5s ease-in-out;
       min-height: 100vh;
       background-attachment: fixed;
-      color: var(--text-light);
+      color: #1e293b;
     }
 
     html.dark body {
       background: var(--bg-dark);
-      color: var(--text-dark);
+      color: #f9fafb;
     }
 
     /* 顶部导航栏 */
     .navbar {
       width: 100%;
       display: flex;
-      flex-wrap: wrap;
       justify-content: space-between;
       align-items: center;
       background: linear-gradient(90deg, #6366f1, #3b82f6, #06b6d4);
-      padding: 1rem 1.5rem;
-      border-radius: 1.25rem;
+      padding: 0.9rem 1.5rem;
+      border-radius: 1rem;
       color: white;
       box-shadow: 0 6px 30px rgba(99,102,241,0.25);
       backdrop-filter: blur(12px);
       position: sticky;
       top: 1rem;
       z-index: 50;
-      text-align: center;
+      flex-wrap: wrap;
+      gap: 0.75rem;
     }
 
     .navbar h1 {
       font-weight: 700;
-      font-size: clamp(1.2rem, 2.5vw, 1.6rem);
-      letter-spacing: 0.3px;
+      font-size: clamp(1.1rem, 4vw, 1.6rem);
+      letter-spacing: 0.5px;
       text-shadow: 0 0 8px rgba(255,255,255,0.3);
-      flex: 1 1 100%;
-      margin-bottom: 0.5rem;
-    }
-
-    @media (min-width: 640px) {
-      .navbar h1 {
-        flex: none;
-        margin-bottom: 0;
-      }
+      flex: 1 1 auto;
     }
 
     .nav-btn {
       display: flex;
-      justify-content: center;
-      gap: 0.75rem;
-      flex-wrap: wrap;
+      gap: 0.6rem;
+      flex-shrink: 0;
     }
 
     .nav-btn button {
       background: rgba(255,255,255,0.25);
-      padding: 0.5rem 1.1rem;
+      padding: 0.5rem 1rem;
       border-radius: 9999px;
       backdrop-filter: blur(6px);
       transition: all 0.3s ease;
@@ -108,7 +97,7 @@ export default {
       transform: translateY(-2px) scale(1.05);
     }
 
-    /* 卡片 */
+    /* 卡片样式 */
     .card {
       background: var(--card-light);
       border-radius: 1.25rem;
@@ -116,7 +105,7 @@ export default {
       box-shadow: 0 12px 30px rgba(0,0,0,0.08);
       border: 1px solid rgba(255,255,255,0.5);
       transition: all 0.5s ease;
-      backdrop-filter: blur(12px);
+      backdrop-filter: blur(10px);
       overflow: hidden;
       position: relative;
     }
@@ -124,11 +113,11 @@ export default {
     html.dark .card {
       background: var(--card-dark);
       box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-      border: 1px solid rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.08);
     }
 
     .card:hover {
-      transform: translateY(-6px) scale(1.03);
+      transform: translateY(-6px) scale(1.02);
       box-shadow: 0 20px 50px rgba(99,102,241,0.25);
     }
 
@@ -137,8 +126,13 @@ export default {
     }
 
     .num {
-      font-weight: 600;
       transition: all 0.4s ease-out;
+      font-weight: 600;
+      color: #1e293b;
+    }
+
+    html.dark .num {
+      color: #e5e7eb;
     }
 
     footer a {
@@ -154,7 +148,7 @@ export default {
       text-shadow: 0 0 8px rgba(99,102,241,0.4);
     }
 
-    /* 动画背景 */
+    /* 背景动画 */
     .animated-bg {
       position: absolute;
       inset: 0;
@@ -172,7 +166,6 @@ export default {
 </head>
 
 <body class="flex flex-col items-center p-6 relative overflow-x-hidden">
-
   <div class="animated-bg"></div>
 
   <!-- 顶部导航栏 -->
@@ -184,7 +177,7 @@ export default {
     </div>
   </nav>
 
-  <!-- 主内容 -->
+  <!-- 主内容区域（保留旧版模板渲染方式） -->
   <main id="data-section" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 w-full max-w-6xl">
     ${data.accounts.map(acc => {
       const usedPercent = (acc.total / (acc.total + acc.free_quota_remaining) * 100).toFixed(1);
@@ -197,14 +190,14 @@ export default {
           <p><strong>📦 总计:</strong> <span class="num" data-value="${acc.total}">0</span></p>
           <p><strong>🎁 免费额度剩余:</strong> <span class="num" data-value="${acc.free_quota_remaining}">0</span></p>
         </div>
-
         <div class="mt-5">
           <div class="w-full bg-gray-300 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
             <div class="bg-gradient-to-r from-green-400 to-blue-500 h-3 rounded-full progress" style="width: ${usedPercent}%"></div>
           </div>
           <p class="text-sm mt-2 text-right opacity-80">${usedPercent}% 已使用</p>
         </div>
-      </div>`;
+      </div>
+      `;
     }).join('')}
   </main>
 
@@ -232,7 +225,7 @@ export default {
     }
     animateNumbers();
 
-    // 刷新
+    // 刷新按钮动画
     document.getElementById('refresh-btn').addEventListener('click', () => {
       document.body.style.opacity = '0.6';
       setTimeout(() => location.reload(), 300);
@@ -245,6 +238,7 @@ export default {
         (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
       root.classList.add('dark');
     }
+
     toggle.addEventListener('click', () => {
       root.classList.toggle('dark');
       localStorage.setItem('theme', root.classList.contains('dark') ? 'dark' : 'light');
