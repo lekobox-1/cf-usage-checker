@@ -22,7 +22,7 @@ export default {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Cloudflare Workers/Pages数据仪表盘</title>
+  <title>Cloudflare 数据仪表盘</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     :root {
@@ -105,7 +105,7 @@ export default {
 
   <header class="mb-10 text-center">
     <h1 class="text-4xl font-extrabold text-indigo-600 dark:text-indigo-400 drop-shadow-sm">🌤️ Cloudflare 数据仪表盘</h1>
-    <p class="text-gray-600 dark:text-gray-300 mt-2">账户使用情况可视化展示</p>
+    <p class="text-gray-600 dark:text-gray-300 mt-2">Workers&Pages账户使用情况可视化展示</p>
   </header>
 
   <main class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 w-full max-w-6xl">
