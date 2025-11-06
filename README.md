@@ -125,7 +125,3 @@ https://cf-usage-checker.your-subdomain.workers.dev
 
 ---
 
-# 🧑‍💻 作者
-
-Created by Arlettebrook
-欢迎提出 Issue 或 Pull Request 改进项目！
