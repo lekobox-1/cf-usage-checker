@@ -16,53 +16,103 @@ export default {
 
     const data = await getCloudflareUsage(tokens);
 
-    const html = `
+        const html = `
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>账户数据展示</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    body { background-color: #f9fafb; }
-    .card {
-      transition: all 0.3s ease;
-    }
-    .card:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
-    }
-  </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cloudflare 账户数据仪表盘</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background: linear-gradient(135deg, #f0f4ff, #e3f6f5);
+      font-family: 'Inter', sans-serif;
+    }
+    .card {
+      background: white;
+      border-radius: 1.25rem;
+      padding: 1.75rem;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+      border: 1px solid rgba(255,255,255,0.7);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .card::before {
+      content: "";
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle at center, rgba(99,102,241,0.05), transparent 70%);
+      transform: rotate(25deg);
+    }
+    .card:hover {
+      transform: translateY(-5px) scale(1.02);
+      box-shadow: 0 15px 40px rgba(99,102,241,0.15);
+    }
+    .progress {
+      transition: width 1s ease;
+    }
+    .num {
+      transition: all 0.4s ease-out;
+    }
+  </style>
 </head>
-<body class="min-h-screen flex flex-col items-center p-8">
-  <h1 class="text-3xl font-bold text-gray-800 mb-6">📊 Cloudflare 账户数据</h1>
-  
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-6xl">
-    ${data.accounts.map(acc => `
-      <div class="card bg-white rounded-2xl shadow p-6">
-        <h2 class="text-xl font-semibold text-indigo-600 mb-3">${acc.account_name}</h2>
-        <p class="text-gray-700 mb-1"><strong>📄 Pages:</strong> ${acc.pages}</p>
-        <p class="text-gray-700 mb-1"><strong>⚙️ Workers:</strong> ${acc.workers}</p>
-        <p class="text-gray-700 mb-1"><strong>📦 总计:</strong> ${acc.total}</p>
-        <p class="text-gray-700 mb-1"><strong>🎁 免费额度剩余:</strong> ${acc.free_quota_remaining}</p>
-        <div class="mt-3">
-          <div class="w-full bg-gray-200 rounded-full h-3">
-            <div class="bg-green-500 h-3 rounded-full" style="width:${(acc.total / (acc.total + acc.free_quota_remaining) * 100).toFixed(1)}%"></div>
-          </div>
-          <p class="text-sm text-gray-500 mt-1 text-right">${(acc.total / (acc.total + acc.free_quota_remaining) * 100).toFixed(1)}% 已使用</p>
-        </div>
-      </div>
-    `).join('')}
-  </div>
+<body class="flex flex-col items-center p-8">
+  <header class="mb-10 text-center">
+    <h1 class="text-4xl font-extrabold text-indigo-600 drop-shadow-sm">🌤️ Cloudflare 数据仪表盘</h1>
+    <p class="text-gray-600 mt-2">账户使用情况可视化展示</p>
+  </header>
 
-  <footer class="mt-10 text-gray-500 text-sm">
-    © ${new Date().getFullYear()} Cloudflare Worker 数据展示
-  </footer>
+  <main class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 w-full max-w-6xl">
+    ${data.accounts.map(acc => {
+      const usedPercent = (acc.total / (acc.total + acc.free_quota_remaining) * 100).toFixed(1);
+      return `
+      <div class="card backdrop-blur-sm relative">
+        <h2 class="text-2xl font-semibold text-gray-800 mb-4">${acc.account_name}</h2>
+        <div class="space-y-2 text-gray-700">
+          <p><strong>📄 Pages:</strong> <span class="num" data-value="${acc.pages}">0</span></p>
+          <p><strong>⚙️ Workers:</strong> <span class="num" data-value="${acc.workers}">0</span></p>
+          <p><strong>📦 总计:</strong> <span class="num" data-value="${acc.total}">0</span></p>
+          <p><strong>🎁 免费额度剩余:</strong> <span class="num" data-value="${acc.free_quota_remaining}">0</span></p>
+        </div>
+        <div class="mt-5">
+          <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+            <div class="bg-gradient-to-r from-green-400 to-blue-500 h-3 rounded-full progress" style="width: ${usedPercent}%"></div>
+          </div>
+          <p class="text-sm text-gray-500 mt-2 text-right">${usedPercent}% 已使用</p>
+        </div>
+      </div>
+      `;
+    }).join('')}
+  </main>
+
+  <footer class="mt-12 text-gray-500 text-sm">
+    © ${new Date().getFullYear()} Cloudflare Worker Dashboard • Designed with 💜 by ChatGPT
+  </footer>
+
+  <script>
+    // 数字滚动动画
+    document.querySelectorAll('.num').forEach(el => {
+      const target = +el.getAttribute('data-value');
+      let count = 0;
+      const step = target / 50;
+      const timer = setInterval(() => {
+        count += step;
+        if (count >= target) {
+          count = target;
+          clearInterval(timer);
+        }
+        el.textContent = Math.floor(count).toLocaleString();
+      }, 20);
+    });
+  </script>
 </body>
 </html>
 `;
-
     return new Response(html, {
       headers: { "content-type": "text/html; charset=utf-8" },
     });
