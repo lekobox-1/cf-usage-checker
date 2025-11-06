@@ -22,55 +22,28 @@ export default {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Cloudflare Workers And Pages Usage数据仪表盘</title>
+  <title>🌤️ Cloudflare Workers & Pages Usage Dashboard</title>
   <script src="https://cdn.tailwindcss.com"></script>
+
   <style>
     :root {
-      --bg-light: linear-gradient(135deg, #eef2ff, #e0f2fe);
-      --bg-dark: linear-gradient(135deg, #1e293b, #0f172a);
-      --card-light: white;
-      --card-dark: #1f2937;
+      --bg-light: linear-gradient(135deg, #eef2ff, #e0f2fe, #fdf2f8);
+      --bg-dark: linear-gradient(135deg, #0f172a, #1e293b);
+      --card-light: rgba(255, 255, 255, 0.8);
+      --card-dark: rgba(31, 41, 55, 0.7);
     }
 
     body {
       background: var(--bg-light);
       font-family: 'Inter', sans-serif;
-      transition: all 0.4s ease;
+      transition: all 0.5s ease-in-out;
+      min-height: 100vh;
+      background-attachment: fixed;
     }
 
     html.dark body {
       background: var(--bg-dark);
       color: #f9fafb;
-    }
-
-    .card {
-      background: var(--card-light);
-      border-radius: 1.25rem;
-      padding: 1.75rem;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-      border: 1px solid rgba(255,255,255,0.7);
-      transition: all 0.4s ease;
-      position: relative;
-      overflow: hidden;
-    }
-
-    html.dark .card {
-      background: var(--card-dark);
-      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-      border: 1px solid rgba(255,255,255,0.1);
-    }
-
-    .card:hover {
-      transform: translateY(-5px) scale(1.02);
-      box-shadow: 0 15px 40px rgba(99,102,241,0.15);
-    }
-
-    .progress {
-      transition: width 1s ease;
-    }
-
-    .num {
-      transition: all 0.4s ease-out;
     }
 
     /* 顶部导航栏 */
@@ -80,16 +53,21 @@ export default {
       justify-content: space-between;
       align-items: center;
       background: linear-gradient(90deg, #6366f1, #3b82f6, #06b6d4);
-      padding: 0.9rem 2rem;
-      border-radius: 1rem;
+      padding: 1rem 2rem;
+      border-radius: 1.25rem;
       color: white;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      box-shadow: 0 6px 30px rgba(99,102,241,0.25);
+      backdrop-filter: blur(12px);
+      position: sticky;
+      top: 1rem;
+      z-index: 50;
     }
 
     .navbar h1 {
       font-weight: 700;
-      font-size: 1.5rem;
+      font-size: 1.6rem;
       letter-spacing: 0.5px;
+      text-shadow: 0 0 8px rgba(255,255,255,0.3);
     }
 
     .nav-btn {
@@ -98,8 +76,8 @@ export default {
     }
 
     .nav-btn button {
-      background: rgba(255,255,255,0.2);
-      padding: 0.5rem 1rem;
+      background: rgba(255,255,255,0.25);
+      padding: 0.5rem 1.1rem;
       border-radius: 9999px;
       backdrop-filter: blur(6px);
       transition: all 0.3s ease;
@@ -110,11 +88,48 @@ export default {
     }
 
     .nav-btn button:hover {
-      background: rgba(255,255,255,0.35);
-      transform: scale(1.05);
+      background: rgba(255,255,255,0.4);
+      transform: translateY(-2px) scale(1.05);
     }
 
-    /* 页脚链接样式 */
+    /* 卡片 */
+    .card {
+      background: var(--card-light);
+      border-radius: 1.25rem;
+      padding: 1.75rem;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.1);
+      border: 1px solid rgba(255,255,255,0.5);
+      transition: all 0.5s ease;
+      backdrop-filter: blur(10px);
+      overflow: hidden;
+      position: relative;
+    }
+
+    html.dark .card {
+      background: var(--card-dark);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .card:hover {
+      transform: translateY(-6px) scale(1.03);
+      box-shadow: 0 20px 50px rgba(99,102,241,0.25);
+    }
+
+    .progress {
+      transition: width 1s ease-in-out;
+    }
+
+    .num {
+      transition: all 0.4s ease-out;
+      font-weight: 600;
+      color: #1e293b;
+    }
+
+    html.dark .num {
+      color: #e5e7eb;
+    }
+
     footer a {
       background: linear-gradient(90deg, #6366f1, #10b981);
       -webkit-background-clip: text;
@@ -125,29 +140,47 @@ export default {
     }
     footer a:hover {
       filter: brightness(1.3);
-      text-shadow: 0 0 6px rgba(99,102,241,0.3);
+      text-shadow: 0 0 8px rgba(99,102,241,0.4);
+    }
+
+    /* 动画背景效果 */
+    .animated-bg {
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      background: radial-gradient(circle at top left, #a5b4fc22, transparent 40%),
+                  radial-gradient(circle at bottom right, #67e8f922, transparent 40%);
+      animation: floatBg 10s ease-in-out infinite alternate;
+    }
+
+    @keyframes floatBg {
+      from { transform: translateY(0px); }
+      to { transform: translateY(-20px); }
     }
   </style>
 </head>
 
-<body class="flex flex-col items-center p-6 relative">
+<body class="flex flex-col items-center p-6 relative overflow-x-hidden">
+
+  <div class="animated-bg"></div>
 
   <!-- 顶部导航栏 -->
   <nav class="navbar mb-8">
-    <h1>🌤️ Cloudflare Workers And Pages Usage 数据仪表盘</h1>
+    <h1>🌤️ Cloudflare Workers & Pages Usage 仪表盘</h1>
     <div class="nav-btn">
       <button id="refresh-btn">🔄 刷新数据</button>
-      <button id="theme-toggle">🌗 主题</button>
+      <button id="theme-toggle">🌗 切换主题</button>
     </div>
   </nav>
 
+  <!-- 主内容区域 -->
   <main id="data-section" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 w-full max-w-6xl">
     ${data.accounts.map(acc => {
       const usedPercent = (acc.total / (acc.total + acc.free_quota_remaining) * 100).toFixed(1);
       return `
       <div class="card">
         <h2 class="text-2xl font-semibold mb-4">${acc.account_name}</h2>
-        <div class="space-y-2">
+        <div class="space-y-2 text-gray-700 dark:text-gray-200">
           <p><strong>📄 Pages:</strong> <span class="num" data-value="${acc.pages}">0</span></p>
           <p><strong>⚙️ Workers:</strong> <span class="num" data-value="${acc.workers}">0</span></p>
           <p><strong>📦 总计:</strong> <span class="num" data-value="${acc.total}">0</span></p>
@@ -157,10 +190,9 @@ export default {
           <div class="w-full bg-gray-300 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
             <div class="bg-gradient-to-r from-green-400 to-blue-500 h-3 rounded-full progress" style="width: ${usedPercent}%"></div>
           </div>
-          <p class="text-sm mt-2 text-right">${usedPercent}% 已使用</p>
+          <p class="text-sm mt-2 text-right opacity-80">${usedPercent}% 已使用</p>
         </div>
-      </div>
-      `;
+      </div>`;
     }).join('')}
   </main>
 
@@ -170,11 +202,12 @@ export default {
   </footer>
 
   <script>
+    // 数字动画
     function animateNumbers() {
       document.querySelectorAll('.num').forEach(el => {
         const target = +el.getAttribute('data-value');
         let count = 0;
-        const step = target / 50;
+        const step = target / 60;
         const timer = setInterval(() => {
           count += step;
           if (count >= target) {
@@ -185,18 +218,15 @@ export default {
         }, 20);
       });
     }
-
     animateNumbers();
 
-    // 刷新按钮（模拟刷新动画）
+    // 刷新按钮动画
     document.getElementById('refresh-btn').addEventListener('click', () => {
       document.body.style.opacity = '0.6';
-      setTimeout(() => {
-        location.reload();
-      }, 300);
+      setTimeout(() => location.reload(), 300);
     });
 
-    // 主题切换逻辑
+    // 主题切换
     const root = document.documentElement;
     const toggle = document.getElementById('theme-toggle');
     if (localStorage.getItem('theme') === 'dark' ||
@@ -206,11 +236,7 @@ export default {
 
     toggle.addEventListener('click', () => {
       root.classList.toggle('dark');
-      if (root.classList.contains('dark')) {
-        localStorage.setItem('theme', 'dark');
-      } else {
-        localStorage.setItem('theme', 'light');
-      }
+      localStorage.setItem('theme', root.classList.contains('dark') ? 'dark' : 'light');
     });
   </script>
 </body>
