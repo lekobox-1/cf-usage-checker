@@ -24,13 +24,16 @@ export default {
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>🌤️ Cloudflare Workers & Pages Usage Dashboard</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
     :root {
-      --bg-light: linear-gradient(135deg, #eef2ff, #e0f2fe, #fdf2f8);
+      --bg-light: linear-gradient(135deg, #f0f4ff, #e0f2fe, #faf5ff);
       --bg-dark: linear-gradient(135deg, #0f172a, #1e293b);
-      --card-light: rgba(255, 255, 255, 0.8);
-      --card-dark: rgba(31, 41, 55, 0.7);
+      --card-light: rgba(255, 255, 255, 0.85);
+      --card-dark: rgba(31, 41, 55, 0.8);
+      --text-light: #1e293b;
+      --text-dark: #f3f4f6;
     }
 
     body {
@@ -39,21 +42,23 @@ export default {
       transition: all 0.5s ease-in-out;
       min-height: 100vh;
       background-attachment: fixed;
+      color: var(--text-light);
     }
 
     html.dark body {
       background: var(--bg-dark);
-      color: #f9fafb;
+      color: var(--text-dark);
     }
 
     /* 顶部导航栏 */
     .navbar {
       width: 100%;
       display: flex;
+      flex-wrap: wrap;
       justify-content: space-between;
       align-items: center;
       background: linear-gradient(90deg, #6366f1, #3b82f6, #06b6d4);
-      padding: 1rem 2rem;
+      padding: 1rem 1.5rem;
       border-radius: 1.25rem;
       color: white;
       box-shadow: 0 6px 30px rgba(99,102,241,0.25);
@@ -61,18 +66,30 @@ export default {
       position: sticky;
       top: 1rem;
       z-index: 50;
+      text-align: center;
     }
 
     .navbar h1 {
       font-weight: 700;
-      font-size: 1.6rem;
-      letter-spacing: 0.5px;
+      font-size: clamp(1.2rem, 2.5vw, 1.6rem);
+      letter-spacing: 0.3px;
       text-shadow: 0 0 8px rgba(255,255,255,0.3);
+      flex: 1 1 100%;
+      margin-bottom: 0.5rem;
+    }
+
+    @media (min-width: 640px) {
+      .navbar h1 {
+        flex: none;
+        margin-bottom: 0;
+      }
     }
 
     .nav-btn {
       display: flex;
+      justify-content: center;
       gap: 0.75rem;
+      flex-wrap: wrap;
     }
 
     .nav-btn button {
@@ -97,10 +114,10 @@ export default {
       background: var(--card-light);
       border-radius: 1.25rem;
       padding: 1.75rem;
-      box-shadow: 0 12px 30px rgba(0,0,0,0.1);
+      box-shadow: 0 12px 30px rgba(0,0,0,0.08);
       border: 1px solid rgba(255,255,255,0.5);
       transition: all 0.5s ease;
-      backdrop-filter: blur(10px);
+      backdrop-filter: blur(12px);
       overflow: hidden;
       position: relative;
     }
@@ -108,7 +125,7 @@ export default {
     html.dark .card {
       background: var(--card-dark);
       box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-      border: 1px solid rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.1);
     }
 
     .card:hover {
@@ -121,13 +138,8 @@ export default {
     }
 
     .num {
-      transition: all 0.4s ease-out;
       font-weight: 600;
-      color: #1e293b;
-    }
-
-    html.dark .num {
-      color: #e5e7eb;
+      transition: all 0.4s ease-out;
     }
 
     footer a {
@@ -143,7 +155,7 @@ export default {
       text-shadow: 0 0 8px rgba(99,102,241,0.4);
     }
 
-    /* 动画背景效果 */
+    /* 动画背景 */
     .animated-bg {
       position: absolute;
       inset: 0;
@@ -173,10 +185,11 @@ export default {
     </div>
   </nav>
 
-  <!-- 主内容区域 -->
+  <!-- 主内容 -->
   <main id="data-section" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 w-full max-w-6xl">
     ${data.accounts.map(acc => {
       const usedPercent = (acc.total / (acc.total + acc.free_quota_remaining) * 100).toFixed(1);
+      const id = acc.account_name.replace(/\s+/g, '_');
       return `
       <div class="card">
         <h2 class="text-2xl font-semibold mb-4">${acc.account_name}</h2>
@@ -186,12 +199,15 @@ export default {
           <p><strong>📦 总计:</strong> <span class="num" data-value="${acc.total}">0</span></p>
           <p><strong>🎁 免费额度剩余:</strong> <span class="num" data-value="${acc.free_quota_remaining}">0</span></p>
         </div>
+
         <div class="mt-5">
           <div class="w-full bg-gray-300 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
             <div class="bg-gradient-to-r from-green-400 to-blue-500 h-3 rounded-full progress" style="width: ${usedPercent}%"></div>
           </div>
           <p class="text-sm mt-2 text-right opacity-80">${usedPercent}% 已使用</p>
         </div>
+
+        <canvas id="chart-${id}" height="130" class="mt-4"></canvas>
       </div>`;
     }).join('')}
   </main>
@@ -220,7 +236,7 @@ export default {
     }
     animateNumbers();
 
-    // 刷新按钮动画
+    // 刷新
     document.getElementById('refresh-btn').addEventListener('click', () => {
       document.body.style.opacity = '0.6';
       setTimeout(() => location.reload(), 300);
@@ -233,11 +249,41 @@ export default {
         (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
       root.classList.add('dark');
     }
-
     toggle.addEventListener('click', () => {
       root.classList.toggle('dark');
       localStorage.setItem('theme', root.classList.contains('dark') ? 'dark' : 'light');
     });
+
+    // Chart.js 迷你图表
+    const isDark = root.classList.contains('dark');
+    const chartColorUsed = isDark ? '#60a5fa' : '#3b82f6';
+    const chartColorFree = isDark ? '#4ade80' : '#10b981';
+
+    ${data.accounts.map(acc => {
+      const used = acc.total;
+      const free = acc.free_quota_remaining;
+      const id = acc.account_name.replace(/\s+/g, '_');
+      return `
+      new Chart(document.getElementById('chart-${id}').getContext('2d'), {
+        type: 'doughnut',
+        data: {
+          labels: ['已使用', '剩余额度'],
+          datasets: [{
+            data: [${used}, ${free}],
+            backgroundColor: ['${chartColorUsed}', '${chartColorFree}'],
+            borderWidth: 1,
+            hoverOffset: 6
+          }]
+        },
+        options: {
+          plugins: {
+            legend: { display: false }
+          },
+          cutout: '75%',
+          responsive: true
+        }
+      });`;
+    }).join('')}
   </script>
 </body>
 </html>
