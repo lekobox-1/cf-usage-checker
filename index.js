@@ -22,7 +22,7 @@ export default {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Cloudflare 数据仪表盘</title>
+  <title>Cloudflare Workers/Pages数据仪表盘</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     :root {
@@ -132,7 +132,7 @@ export default {
   </main>
 
   <footer class="mt-12 text-gray-500 text-sm">
-    © ${new Date().getFullYear()} Cloudflare Worker Dashboard • Designed with 💜 by ChatGPT
+    © ${new Date().getFullYear()} Cloudflare Worker Dashboard • Designed with 💜 by Arlettebrook
   </footer>
 
   <script>
