@@ -22,7 +22,7 @@ export default {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Cloudflare Workers And Pages Usage 数据仪表盘</title>
+  <title>Cloudflare Workers And Pages Usage数据仪表盘</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     :root {
@@ -134,7 +134,7 @@ export default {
 
   <!-- 顶部导航栏 -->
   <nav class="navbar mb-8">
-    <h1>🌤️ Cloudflare 仪表盘</h1>
+    <h1>🌤️ Cloudflare Workers And Pages Usage 数据仪表盘</h1>
     <div class="nav-btn">
       <button id="refresh-btn">🔄 刷新数据</button>
       <button id="theme-toggle">🌗 主题</button>
